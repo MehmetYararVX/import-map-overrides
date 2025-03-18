@@ -1,6 +1,6 @@
 import { applyOverrides, getOverridesFromCookies } from "../server/server-api";
 import http from "http";
-import cookie from "cookie";
+import { serialize } from "cookie";
 
 describe("applyOverrides", () => {
   it("should apply overrides to the import map", () => {
@@ -85,7 +85,7 @@ describe("getOverridesFromCookies", () => {
 
   it("should return overrides from cookies", () => {
     // Arrange
-    req.headers.cookie = cookie.serialize(
+    req.headers.cookie = serialize(
       "import-map-override:package1",
       "https://unpkg.com/package1"
     );
@@ -100,14 +100,8 @@ describe("getOverridesFromCookies", () => {
   it("should handle multiple overrides from cookies", () => {
     // Arrange
     req.headers.cookie = [
-      cookie.serialize(
-        "import-map-override:package1",
-        "https://unpkg.com/package1"
-      ),
-      cookie.serialize(
-        "import-map-override:package2",
-        "https://unpkg.com/package2"
-      ),
+      serialize("import-map-override:package1", "https://unpkg.com/package1"),
+      serialize("import-map-override:package2", "https://unpkg.com/package2"),
     ].join("; ");
 
     // Act
@@ -120,10 +114,7 @@ describe("getOverridesFromCookies", () => {
 
   it("should handle port numbers in cookies", () => {
     // Arrange
-    req.headers.cookie = cookie.serialize(
-      "import-map-override:package1",
-      "8080"
-    );
+    req.headers.cookie = serialize("import-map-override:package1", "8080");
 
     // Act
     const result = getOverridesFromCookies(
@@ -138,7 +129,7 @@ describe("getOverridesFromCookies", () => {
   it("should handle protocol-relative URLs in cookies", () => {
     // Arrange
     req.protocol = "https";
-    req.headers.cookie = cookie.serialize(
+    req.headers.cookie = serialize(
       "import-map-override:package1",
       "//unpkg.com/package1"
     );
@@ -152,7 +143,7 @@ describe("getOverridesFromCookies", () => {
 
   it("should ignore cookies that do not start with the correct prefix", () => {
     // Arrange
-    req.headers.cookie = cookie.serialize("some-other-cookie", "some-value");
+    req.headers.cookie = serialize("some-other-cookie", "some-value");
 
     // Act
     const result = getOverridesFromCookies(req);
@@ -163,7 +154,7 @@ describe("getOverridesFromCookies", () => {
 
   it("should handle cookies with empty module names", () => {
     // Arrange
-    req.headers.cookie = cookie.serialize(
+    req.headers.cookie = serialize(
       "import-map-override:",
       "https://unpkg.com/package1"
     );
